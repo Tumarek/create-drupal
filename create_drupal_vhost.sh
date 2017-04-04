@@ -9,40 +9,32 @@ SCRIPTPATH=$(dirname "$SCRIPT")
 
 #Define web working path
 WORKINGPATH=/var/www
-echo $WORKINGPATH
 
 #Define server name
-SERVERNAME=batou
+echo -n "Enter Servername: "
+read SERVERNAME
 
 #Define base URL
+echo -n "Enter BaseURL: "
 read BASEURL
 
 #Define stage directory
+echo  "Stage is development."
 STAGEPATH=dev
 
 #Define client name.
-echo -n "Enter the name of the client: "
+echo -n "Enter clentname: "
+read CLIENT
 
-ok=0
-while [ $ok = 0 ]
-do
-  echo "Enter the id: " 
-  read CLIENT
-  if [ ${#CLIENT} -gt 12 ]
-  then
-    echo Too long - 12 characters max
-  else
-    ok=1
-fi
-done
+#Define client shortcut
+echo -n "Enter short client name: "
+read CLIENTSHORT
 
 #Define project name.
-echo -n "Enter the name of the project: "
-
 ok=0
 while [ $ok = 0 ]
 do
-  echo "Enter the id: " 
+  echo -n "Enter the project id: " 
   read PROJECT
   if [ ${#PROJECT} -gt 12 ]
   then
@@ -52,9 +44,14 @@ do
 fi
 done
 
-#Build install path
-INSTALLPATH=$WORKINGPATH"/"$SERVERNAME"/"$CLIENT"/"$PROJECT"/"
+#Define project id 
+PROJECTID=$CLIENTSHORT"_"$PROJECT"_d8"
 
+#Build install path
+INSTALLPATH=$WORKINGPATH"/"$SERVERNAME"/"$CLIENT"/"$PROJECT"/"$STAGEPATH"/"$PROJECTID"/drupal-8.x"
+
+echo "Project Id will be: "$PROJECTID
+echo "Drupal will be installed in: "$INSTALLPATH
 <<'COMMENT'
 echo "Your site will be called: "$SITENAME", the domain will be: "$SITENAME"."$BASEURL" and be installed in" $INSTALLATIONDIRECTORY"/"$SITENAME
 
