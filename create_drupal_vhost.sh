@@ -71,9 +71,8 @@ cd $INSTALLATIONDIRECTORY
     DocumentRoot $INSTALLATIONDIRECTORY/"$SITENAME"/htdocs/drupal-8.x/
     <Directory $INSTALLATIONDIRECTORY/"$SITENAME"/htdocs/drupal-8.x/>
       Options FollowSymlinks
-      
       #Require all granted
-      
+
       AuthType Basic
       AuthName 'Authentication Required'
       AuthUserFile "$INSTALLATIONDIRECTORY"/"$SITENAME"/htpasswd/.htpasswd
