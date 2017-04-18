@@ -20,7 +20,7 @@ read BASEURL
 
 #Define stage directory
 echo  "Stage is development."
-STAGEPATH=dev
+STAGE=dev
 
 #Define client name.
 echo -n "Enter clentname: "
@@ -47,9 +47,11 @@ do
 fi
 done
 
+#Build stage path
+STAGEPATH=$WORKINGPATH"/"$SERVERNAME"/"$CLIENT"/"$PROJECT"/"$STAGE"
 
 #Build install path
-INSTALLPATH=$WORKINGPATH"/"$SERVERNAME"/"$CLIENT"/"$PROJECT"/"$STAGEPATH"/"$PROJECTID"/drupal-8.x"
+INSTALLPATH=$WORKINGPATH"/"$SERVERNAME"/"$CLIENT"/"$PROJECT"/"$STAGE"/"$PROJECTID"/drupal-8.x"
 
 echo "Project Id will be: "$PROJECTID
 echo "Drupal will be installed in: "$INSTALLPATH
@@ -75,15 +77,15 @@ cd $WORKINGPATH"/"$SERVERNAME"/"$CLIENT"
 
       AuthType Basic
       AuthName 'Authentication Required'
-      AuthUserFile /$WORKINGPATH"/"$SERVERNAME"/"$CLIENT"/"$PROJECT"/"$STAGEPATH/"htpasswd/.htpasswd"
+      AuthUserFile $STAGEPATH/"htpasswd/.htpasswd"
       Require user preview
 
       AllowOverride All
     </Directory>
 
-    ErrorLog \${APACHE_LOG_DIR}/"$BASEURL"_sub_"$SITENAME"_error.log
+    ErrorLog \${APACHE_LOG_DIR}/"$PROJECTID"_error.log
     LogLevel warn
-    CustomLog \${APACHE_LOG_DIR}/"$BASEURL"_sub_"$SITENAME"_access.log combined
+    CustomLog \${APACHE_LOG_DIR}/"$PROJECTID"_access.log combined
   </VirtualHost>" >$SITENAME.conf
 
   #Download Drupal
