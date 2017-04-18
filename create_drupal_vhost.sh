@@ -31,34 +31,34 @@ echo -n "Enter short client name: "
 read CLIENTSHORT
 
 #Define project name.
+echo -n "Enter the project id: " 
+read PROJECT
+
+#Define project id 
+PROJECTID=$CLIENTSHORT"_"$PROJECT"_d8"
 ok=0
 while [ $ok = 0 ]
 do
-  echo -n "Enter the project id: " 
-  read PROJECT
-  if [ ${#PROJECT} -gt 12 ]
+  if [ ${#PROJECTID} -gt 12 ]
   then
-    echo Too long - 12 characters max
+    echo Project ID Too long - 12 characters max
   else
     ok=1
 fi
 done
 
-#Define project id 
-PROJECTID=$CLIENTSHORT"_"$PROJECT"_d8"
 
 #Build install path
 INSTALLPATH=$WORKINGPATH"/"$SERVERNAME"/"$CLIENT"/"$PROJECT"/"$STAGEPATH"/"$PROJECTID"/drupal-8.x"
 
 echo "Project Id will be: "$PROJECTID
 echo "Drupal will be installed in: "$INSTALLPATH
-<<'COMMENT'
-echo "Your site will be called: "$SITENAME", the domain will be: "$SITENAME"."$BASEURL" and be installed in" $INSTALLATIONDIRECTORY"/"$SITENAME
+echo "Your site will be called: "$PROJECT", the domain will be: "$PROJECT"."$BASEURL" and be installed in" $INSTALLATIONDIRECTORY
 
 #Check if project already exists.
-cd $INSTALLATIONDIRECTORY
- if [ -d "$SITENAME" ]; then
-   echo $SITENAME "is already taken...  Aborting"
+cd $WORKINGPATH"/"$SERVERNAME"/"$CLIENT" 
+ if [ -d "$PROJECT" ]; then
+   echo $PROJECT "is already taken...  Aborting"
  else
   
   echo "Installing...."
@@ -67,15 +67,15 @@ cd $INSTALLATIONDIRECTORY
   cd $SCRIPTPATH/vhosts
   echo "<VirtualHost *:80>
     ServerAdmin webmaster@localhost
-    ServerName "$SITENAME"."$BASEURL"
-    DocumentRoot $INSTALLATIONDIRECTORY/"$SITENAME"/htdocs/drupal-8.x/
-    <Directory $INSTALLATIONDIRECTORY/"$SITENAME"/htdocs/drupal-8.x/>
+    ServerName "$PROJECT"."$BASEURL"
+    DocumentRoot $INSTALLATIONDIRECTORY/drupal/
+    <Directory $INSTALLATIONDIRECTORY/drupal/>
       Options FollowSymlinks
       #Require all granted
 
       AuthType Basic
       AuthName 'Authentication Required'
-      AuthUserFile "$INSTALLATIONDIRECTORY"/"$SITENAME"/htpasswd/.htpasswd
+      AuthUserFile /$WORKINGPATH"/"$SERVERNAME"/"$CLIENT"/"$PROJECT"/"$STAGEPATH/"htpasswd/.htpasswd"
       Require user preview
 
       AllowOverride All
@@ -155,4 +155,3 @@ cd $INSTALLATIONDIRECTORY
     echo "Drupal could not be downloaded... Aborting"
   fi
 fi
-COMMENT
