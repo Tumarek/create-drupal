@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [[ $EUID -ne 0 ]]; then
+  echo "This script must be run as root" 
+  exit 1
+fi
 
 #Define path the script is in.
 SCRIPT=$(readlink -f "$0")
@@ -145,16 +149,7 @@ drush si --account-name=wm_$PROJECT --account-pass=$DRUPALPASS --account-mail=$E
 #Set permissions, owner and group
 echo "Setting Permissions..."
 cd $INSTALLATIONDIRECTORY/$SITENAME/htdocs/drupal-8.x
-chown -R dev:www-data $INSTALLATIONDIRECTORY/$SITENAME
-find . -type d -exec chmod u=rwxs,g=rxs,o= '{}' \;
-find . -type f -exec chmod u=rw,g=r,o= '{}' \;
-cd sites
-find . -type d -name files -exec chmod ug=rwxs,o= '{}' \;
-for d in ./*/files
-do
-  find $d -type d -exec chmod ug=rwxs,o= '{}' \;
-  find $d -type f -exec chmod ug=rw,o= '{}' \;
-done
+$SCRIPTPATH/file_permissions.sh
 
 #Return information
 echo "Site installation complete"
