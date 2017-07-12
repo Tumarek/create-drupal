@@ -1,4 +1,6 @@
-chown -R dev:www-data .
+USER=$(logname)
+GROUP=$(ps axo user,group,comm | egrep '(apache|httpd)' | grep -v ^root | uniq | cut -d\  -f 2)
+chown -R $USER:$GROUP .
 find . -type d -exec chmod u=rwxs,g=rxs,o= '{}' \;
 find . -type f -exec chmod u=rw,g=r,o= '{}' \;
 cd sites
