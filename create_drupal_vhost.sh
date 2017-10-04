@@ -57,7 +57,6 @@ else
 fi
 
 #Define base URL
-echo -n "Enter BaseURL: "
 read BASEURL
 
 
@@ -94,53 +93,24 @@ fi
 
 echo "Installing...."
 
-# ====== Prepare Apache vhost ======
-
-#Create apache vhost file
-cd $SCRIPTPATH/vhosts
-echo "<VirtualHost *:80>
-  ServerAdmin webmaster@localhost
-  ServerName "$PROJECT"."$BASEURL"
-  DocumentRoot $INSTALLATIONDIRECTORY
-  <Directory $INSTALLATIONDIRECTORY>
-    Options FollowSymlinks
-    #Require all granted
-
-    AuthType Basic
-    AuthName 'Authentication Required'
-    AuthUserFile $STAGEPATH/"htpasswd/.htpasswd"
-    Require user preview
-
-    AllowOverride All
-  </Directory>
-
-  ErrorLog \${APACHE_LOG_DIR}/"$PROJECTID"_error.log
-  LogLevel warn
-  CustomLog \${APACHE_LOG_DIR}/"$PROJECTID"_access.log combined
-</VirtualHost>" >$SITENAME.conf
-
 # ====== Download Drupal ====== 
-
 #Create htaccess
-
 mkdir htpasswd
 cd htpasswd
-htpasswd -cb .htpasswd preview pass4$SITENAME
+htpasswd -cb .htpasswd preview pass4$PROJECTID
 
 #Change permissions to development user
-
 cd $WORKINGPATH"/"$SERVERNAME"/"$CLIENT                                                                                              
 chown -R $USER:$USER * .[^.]*
 
 #Install drupal
-
 cd $STAGEPATH 
 su - $USER -c composer create-project drupal-composer/drupal-project:8.x-dev $PROJECTID --stability dev --no-interaction  
 
 # ====== Prepare Apache vhost ======
 #Create apache vhost file
-cd $SCRIPTPATH/vhosts
-echo "<VirtualHost *:80>
+cat > /ect/apache2/sites-available/$PROJECTID.conf << EOF
+<VirtualHost *:80>
   ServerAdmin webmaster@localhost
   ServerName "$PROJECT"."$BASEURL"
   DocumentRoot $INSTALLATIONDIRECTORY
@@ -159,22 +129,17 @@ echo "<VirtualHost *:80>
   ErrorLog \${APACHE_LOG_DIR}/"$PROJECTID"_error.log
   LogLevel warn
   CustomLog \${APACHE_LOG_DIR}/"$PROJECTID"_access.log combined
-</VirtualHost>" >$SITENAME.conf
+</VirtualHost>" >
+EOF
 
-#Configure apache vhost
-  if [ -f $SCRIPTPATH/vhosts/$SITENAME.conf ]; then
-
-  echo "Preparing $SITENAME.conf... Enter sudo password:"
-  sudo cp $SCRIPTPATH/vhosts/$SITENAME.conf /etc/apache2/sites-available/
-  echo "Enabling" $SITENAME".conf... "
-  sudo a2ensite $SITENAME.conf
-  echo "Reloading apache... "
-  sudo service apache2 reload
-  rm $SCRIPTPATH/vhosts/$SITENAME.conf
+echo "Enabling" $PROJECTID".conf... "
+a2ensite $PROJECTID.conf
+echo "Reloading apache... "
+service apache2 reload
 
 #Create Database and Passwords
-  if [ -d "$INSTALLATIONDIRECTORY/$SITENAME/htdocs/drupal-8.x" ]; then
-  cd $INSTALLATIONDIRECTORY/$SITENAME/htdocs/drupal-8.x
+  if [ -d "$INSTALLATIONDIRECTORY/$PROJECTID/htdocs/drupal-8.x" ]; then
+  cd $INSTALLATIONDIRECTORY/$PROJECTID/htdocs/drupal-8.x
   DBDRUPALPASS=$(date +%s | sha256sum | base64 | head -c 32)
   DRUPALPASS=$(date +%s | sha256sum | base64 | head -c 32)
   echo -n "Enter the root mysql password: "
@@ -182,16 +147,16 @@ echo "<VirtualHost *:80>
 
 #Setup drupal
 drush sql-create --db-su=root --db-su-pw=$DBROOTPASS --db-url="mysql://"$PROJECTID":"$DBDRUPALPASS"@localhost/"$PROJECTID
-drush si --account-name=wm_$PROJECT --account-pass=$DRUPALPASS --account-mail=$EMAIL --site-name=$PROJECT --db-url="mysql://"$SITENAME"_d8:"$DBDRUPALPASS"@localhost/$SERVERNAME_sub_"$SITENAME"_d8"
+drush si --account-name=wm_$PROJECT --account-pass=$DRUPALPASS --account-mail=$EMAIL --site-name=$PROJECT --db-url="mysql://"$PROJECTID"_d8:"$DBDRUPALPASS"@localhost/$SERVERNAME_sub_"$PROJECTID"_d8"
 
 #Set permissions, owner and group
 echo "Setting Permissions..."
-cd $INSTALLATIONDIRECTORY/$SITENAME/htdocs/drupal-8.x
+cd $INSTALLATIONDIRECTORY/$PROJECTID/htdocs/drupal-8.x
 $SCRIPTPATH/file_permissions.sh
 
 #Return information
 echo "Site installation complete"
-echo "Site URL: $SITENAME."$BASEURL""
-echo "Drupal user: wm_$SITENAME"
+echo "Site URL: $PROJECTID."$BASEURL""
+echo "Drupal user: wm_$PROJECTID"
 echo "Drupal password: $DRUPALPASS"
-echo "Htaccess User: preview, Password:pass4$SITENAME"
+echo "Htaccess User: preview, Password:pass4$PROJECTID"
