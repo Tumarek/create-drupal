@@ -15,8 +15,8 @@ if [[ $EUID -ne 0 ]]; then
   exit 1
 fi
 
+#
 command -v composer >/dev/null 2>&1 || { echo >&2 "Composer is required but not installed.  Aborting.";
-
 
 #Define path the script is in.
 SCRIPT=$(readlink -f "$0")
@@ -112,9 +112,9 @@ su - $USER -c composer create-project drupal-composer/drupal-project:8.x-dev $PR
 cat > /ect/apache2/sites-available/$PROJECTID.conf << EOF
 <VirtualHost *:80>
   ServerAdmin webmaster@localhost
-  ServerName "$PROJECT"."$BASEURL"
-  DocumentRoot $INSTALLATIONDIRECTORY
-  <Directory $INSTALLATIONDIRECTORY>
+  ServerName "$PROJECTID"."$BASEURL"
+  DocumentRoot $INSTALLPATH
+  <Directory $INSTALLPATH>
     Options FollowSymlinks
     #Require all granted
 
@@ -138,8 +138,8 @@ echo "Reloading apache... "
 service apache2 reload
 
 #Create Database and Passwords
-  if [ -d "$INSTALLATIONDIRECTORY/$PROJECTID/htdocs/drupal-8.x" ]; then
-  cd $INSTALLATIONDIRECTORY/$PROJECTID/htdocs/drupal-8.x
+  if [ -d "$INSTALLPATH" ]; then
+  cd $INSTALLPATH
   DBDRUPALPASS=$(date +%s | sha256sum | base64 | head -c 32)
   DRUPALPASS=$(date +%s | sha256sum | base64 | head -c 32)
   echo -n "Enter the root mysql password: "
@@ -151,7 +151,7 @@ drush si --account-name=wm_$PROJECT --account-pass=$DRUPALPASS --account-mail=$E
 
 #Set permissions, owner and group
 echo "Setting Permissions..."
-cd $INSTALLATIONDIRECTORY/$PROJECTID/htdocs/drupal-8.x
+cd $INSTALLPATH
 $SCRIPTPATH/file_permissions.sh
 
 #Return information
