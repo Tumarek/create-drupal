@@ -1,9 +1,22 @@
 #!/bin/bash
 
+# ====== Check requirements ======
+echo "Installing Drupal"
+
+echo "Checking dependencies"
+
+#Find out which User exectue the script
+USER=$(logname)
+echo "Drupal will be installed for: "$USER"!"
+
+#Check if we have root.
 if [[ $EUID -ne 0 ]]; then
   echo "This script must be run as root" 
   exit 1
 fi
+
+command -v composer >/dev/null 2>&1 || { echo >&2 "Composer is required but not installed.  Aborting.";
+
 
 #Define path the script is in.
 SCRIPT=$(readlink -f "$0")
@@ -52,7 +65,7 @@ read BASEURL
 STAGEPATH=$WORKINGPATH"/"$SERVERNAME"/"$CLIENT"/"$PROJECT"/"$STAGE
 
 #Build install path
-INSTALLPATH=$WORKINGPATH"/"$SERVERNAME"/"$CLIENT"/"$PROJECT"/"$STAGE"/"$PROJECTID"/drupal-8.x"
+INSTALLPATH=$WORKINGPATH"/"$SERVERNAME"/"$CLIENT"/"$PROJECT"/"$STAGE"/"$PROJECTID"/web"
 
 echo "Project Id will be: "$PROJECTID
 echo "Drupal will be installed in: "$INSTALLPATH
@@ -77,21 +90,19 @@ else
   mkdir $PROJECT
   cd $PROJECT
   mkdir $STAGE
-  cd $STAGE
-  mkdir $PROJECTID
-  cd $PROJECTID
-  mkdir 
 fi
 
 echo "Installing...."
+
+# ====== Prepare Apache vhost ======
 
 #Create apache vhost file
 cd $SCRIPTPATH/vhosts
 echo "<VirtualHost *:80>
   ServerAdmin webmaster@localhost
   ServerName "$PROJECT"."$BASEURL"
-  DocumentRoot $INSTALLATIONDIRECTORY/drupal/
-  <Directory $INSTALLATIONDIRECTORY/drupal/>
+  DocumentRoot $INSTALLATIONDIRECTORY
+  <Directory $INSTALLATIONDIRECTORY>
     Options FollowSymlinks
     #Require all granted
 
@@ -108,21 +119,48 @@ echo "<VirtualHost *:80>
   CustomLog \${APACHE_LOG_DIR}/"$PROJECTID"_access.log combined
 </VirtualHost>" >$SITENAME.conf
 
-#Download Drupal
-cd $INSTALLATIONDIRECTORY
-mkdir $SITENAME
-cd $SITENAME
+# ====== Download Drupal ====== 
+
+#Create htaccess
+
 mkdir htpasswd
 cd htpasswd
 htpasswd -cb .htpasswd preview pass4$SITENAME
-cd ..
-mkdir htdocs
-cd htdocs
-  drush dl drupal
-DRUPALDIRECTORYWITHVERSION=$(ls)
-  if [ -d "$DRUPALDIRECTORYWITHVERSION" ]; then
 
-  mv $DRUPALDIRECTORYWITHVERSION drupal-8.x
+#Change permissions to development user
+
+cd $WORKINGPATH"/"$SERVERNAME"/"$CLIENT                                                                                              
+chown -R $USER:$USER * .[^.]*
+
+#Install drupal
+
+cd $STAGEPATH 
+su - $USER -c composer create-project drupal-composer/drupal-project:8.x-dev $PROJECTID --stability dev --no-interaction  
+
+# ====== Prepare Apache vhost ======
+#Create apache vhost file
+cd $SCRIPTPATH/vhosts
+echo "<VirtualHost *:80>
+  ServerAdmin webmaster@localhost
+  ServerName "$PROJECT"."$BASEURL"
+  DocumentRoot $INSTALLATIONDIRECTORY
+  <Directory $INSTALLATIONDIRECTORY>
+    Options FollowSymlinks
+    #Require all granted
+
+    AuthType Basic
+    AuthName 'Authentication Required'
+    AuthUserFile $STAGEPATH/"htpasswd/.htpasswd"
+    Require user preview
+
+    AllowOverride All
+  </Directory>
+
+  ErrorLog \${APACHE_LOG_DIR}/"$PROJECTID"_error.log
+  LogLevel warn
+  CustomLog \${APACHE_LOG_DIR}/"$PROJECTID"_access.log combined
+</VirtualHost>" >$SITENAME.conf
+
 #Configure apache vhost
   if [ -f $SCRIPTPATH/vhosts/$SITENAME.conf ]; then
 
@@ -133,12 +171,12 @@ DRUPALDIRECTORYWITHVERSION=$(ls)
   echo "Reloading apache... "
   sudo service apache2 reload
   rm $SCRIPTPATH/vhosts/$SITENAME.conf
-#Create Database and Passwords
 
+#Create Database and Passwords
   if [ -d "$INSTALLATIONDIRECTORY/$SITENAME/htdocs/drupal-8.x" ]; then
   cd $INSTALLATIONDIRECTORY/$SITENAME/htdocs/drupal-8.x
   DBDRUPALPASS=$(date +%s | sha256sum | base64 | head -c 32)
-DRUPALPASS=$(date +%s | sha256sum | base64 | head -c 32)
+  DRUPALPASS=$(date +%s | sha256sum | base64 | head -c 32)
   echo -n "Enter the root mysql password: "
   read -s DBROOTPASS
 
