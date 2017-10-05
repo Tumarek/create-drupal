@@ -175,3 +175,4 @@ echo "Site URL: $PROJECTID."$BASEURL""
 echo "Drupal user: wm_$PROJECTID"
 echo "Drupal password: $DRUPALPASS"
 echo "Htaccess User: preview, Password:pass4$PROJECTID"
+
