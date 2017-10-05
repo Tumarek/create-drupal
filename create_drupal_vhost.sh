@@ -5,6 +5,9 @@ echo "Installing Drupal"
 
 echo "Checking dependencies"
 
+#Load default config
+source ./default.cnfg
+
 #Find out which User exectue the script
 USER=$(logname)
 echo "Drupal will be installed for: "$USER"!"
@@ -57,8 +60,13 @@ else
 fi
 
 #Define base URL
-read BASEURL
-
+if [ -z "BASEURL" ]
+then
+  echo -n "Enter base URL for the site: "
+  read BASEURL
+else
+  echo -n "Base URL is set to " $BASEURL
+fi
 
 #Build stage path
 STAGEPATH=$WORKINGPATH"/"$SERVERNAME"/"$CLIENT"/"$PROJECT"/"$STAGE
@@ -153,6 +161,12 @@ drush si --account-name=wm_$PROJECT --account-pass=$DRUPALPASS --account-mail=$E
 echo "Setting Permissions..."
 cd $INSTALLPATH
 $SCRIPTPATH/file_permissions.sh
+
+#Create git repository and edit .gitignore
+cd $STAGEPATH
+git init
+cd $INSTALLPATH/..
+
 
 #Return information
 echo "Site installation complete"
