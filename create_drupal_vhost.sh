@@ -54,9 +54,10 @@ read CLIENTSHORT
 PROJECTID=$CLIENTSHORT"_"$PROJECT"_d8"
 if [ ${#PROJECTID} -gt 12 ]
 then
-  echo Project ID Too long - 12 characters max
+  echo "Project ID Too long - 12 characters max"
   exit 1
 else
+  echo "Ok!"
 fi
 
 #Define base URL
