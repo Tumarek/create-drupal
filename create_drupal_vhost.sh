@@ -165,7 +165,7 @@ cat > /etc/apache2/sites-available/$PROJECTID"_"$STAGE.conf << EOF
   ErrorLog \${APACHE_LOG_DIR}/$PROJECTID_$STAGE_error.log
   LogLevel warn
   CustomLog \${APACHE_LOG_DIR}/$PROJECTID_$STAGE__access.log combined
-</VirtualHost>" >
+</VirtualHost>
 EOF
 
 echo "Enabling" $PROJECTID"_"$STAGE".conf... "
@@ -185,9 +185,9 @@ then
 fi
 
 #Setup drupal
-cd $INSTALLPATH
-../vendor/bin/drush sql-create --db-su=root --db-su-pw=$DBROOTPASS --db-url="mysql://"$PROJECTID":"$DBDRUPALPASS"@localhost/"$PROJECTID
-../vendor/bin/drush si --account-name=wm_$PROJECT --account-pass=$DRUPALPASS --account-mail=$EMAIL --site-name=$PROJECT --db-url="mysql://"$PROJECTID"_d8:"$DBDRUPALPASS"@localhost/$SERVERNAME_sub_"$PROJECTID"_d8"
+# cd $INSTALLPATH
+# ../vendor/bin/drush sql-create --db-su=root --db-su-pw=$DBROOTPASS --db-url="mysql://"$PROJECTID":"$DBDRUPALPASS"@localhost/"$PROJECTID
+# ../vendor/bin/drush si --account-name=wm_$PROJECT --account-pass=$DRUPALPASS --account-mail=$EMAIL --site-name=$PROJECT --db-url="mysql://"$PROJECTID"_d8:"$DBDRUPALPASS"@localhost/$SERVERNAME_sub_"$PROJECTID"_d8"
 
 #Set permissions, owner and group
 echo "Setting Permissions..."
