@@ -34,7 +34,7 @@ WORKINGPATH=/var/www
 if [ -z "SERVERNAME" ]
 then
   echo -n "Enter SERVERNAME: "
-  read SERVNERNAME
+  read SERVERNAME
 else
   echo "Server name is set to " $SERVERNAME
 fi
