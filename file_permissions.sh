@@ -1,3 +1,5 @@
+#!/bin/bash
+
 USER=$(logname)
 GROUP=$(ps axo user,group,comm | egrep '(apache|httpd)' | grep -v ^root | uniq | cut -d\  -f 2)
 chown -R $USER:$GROUP .
